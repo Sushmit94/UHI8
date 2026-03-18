@@ -117,6 +117,14 @@ depeg-guardian-hook/
 
 ---
 
+## 🤝 Partner Integrations
+
+| Partner | Integration | Code Location |
+|---|---|---|
+| **Chainlink** | Price Feeds (`latestRoundData`) for real-time oracle-based depeg detection | [src/DepegGuardianHook.sol](cci:7://file:///c:/Users/hp/OneDrive/Desktop/semiFinalProject/depeg-guardian-hook/contracts/src/DepegGuardianHook.sol:0:0-0:0) L232-251, [src/interfaces/IChainlinkOracle.sol](cci:7://file:///c:/Users/hp/OneDrive/Desktop/semiFinalProject/depeg-guardian-hook/contracts/src/interfaces/IChainlinkOracle.sol:0:0-0:0) |
+
+
+
 ## 🚀 Getting Started
 
 ### Prerequisites
