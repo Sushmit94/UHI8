@@ -6,7 +6,7 @@ import {Hooks} from "@uniswap/v4-core/src/libraries/Hooks.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 import {DepegGuardianHook} from "../src/DepegGuardianHook.sol";
 import {DeployConfig} from "./DeployConfig.s.sol";
-import {HookMiner} from "@uniswap/v4-periphery/src/utils/HookMiner.sol";
+import {HookMiner} from "../src/utils/HookMiner.sol";
 
 /// @title Deploy
 /// @notice Deployment script for DepegGuardianHook

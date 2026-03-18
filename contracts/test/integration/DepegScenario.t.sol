@@ -1,3 +1,4 @@
+import {ModifyLiquidityParams, SwapParams} from "@uniswap/v4-core/src/types/PoolOperation.sol";
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
@@ -66,7 +67,7 @@ contract DepegScenarioTest is Test, Deployers {
         // Add initial liquidity
         modifyLiquidityRouter.modifyLiquidity(
             poolKey,
-            IPoolManager.ModifyLiquidityParams({
+            ModifyLiquidityParams({
                 tickLower: -600,
                 tickUpper: 600,
                 liquidityDelta: 100e18,
@@ -179,15 +180,12 @@ contract DepegScenarioTest is Test, Deployers {
     function _swap() internal {
         swapRouter.swap(
             poolKey,
-            IPoolManager.SwapParams({
+            SwapParams({
                 zeroForOne: true,
                 amountSpecified: -1e15,
                 sqrtPriceLimitX96: TickMath.MIN_SQRT_PRICE + 1
             }),
-            PoolSwapTest.TestSettings({
-                takeClaims: false,
-                settleUsingBurn: false
-            }),
+            
             ""
         );
     }

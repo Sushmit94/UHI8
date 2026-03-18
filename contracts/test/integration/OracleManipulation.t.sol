@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
-
+import {ModifyLiquidityParams, SwapParams} from "@uniswap/v4-core/src/types/PoolOperation.sol";
 import "forge-std/Test.sol";
+
 import {Deployers} from "@uniswap/v4-core/test/utils/Deployers.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
@@ -141,7 +142,7 @@ contract OracleManipulationTest is Test, Deployers {
         _swap();
 
         IDepegGuardian.GuardianState memory state = hook.getDepegState(poolId);
-        assertTrue(state.state == IDepegGuardian.DepegState.DEPEGGED, "Stale oracle → DEPEGGED");
+        assertTrue(state.state == IDepegGuardian.DepegState.DEPEGGED, "Stale oracle -> DEPEGGED");
         assertEq(state.depegBps, 200, "Should use circuitBreakerBps");
     }
 
@@ -173,10 +174,7 @@ contract OracleManipulationTest is Test, Deployers {
                 amountSpecified: -1e15,
                 sqrtPriceLimitX96: TickMath.MIN_SQRT_PRICE + 1
             }),
-            PoolSwapTest.TestSettings({
-                takeClaims: false,
-                settleUsingBurn: false
-            }),
+            
             ""
         );
     }

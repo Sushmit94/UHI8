@@ -60,7 +60,7 @@ interface IDepegGuardian {
     // ─── Errors ──────────────────────────────────────────────────────────────────
 
     /// @notice Thrown when swaps are paused by circuit breaker
-    error SwapsPaused();
+    error SwapsCurrentlyPaused();
 
     /// @notice Thrown when oracle returns invalid data
     error InvalidOracleData();

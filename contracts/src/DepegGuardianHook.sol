@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {BaseHook} from "@uniswap/v4-periphery/src/utils/BaseHook.sol";
+import {BaseHook} from "./base/BaseHook.sol";
 import {Hooks} from "@uniswap/v4-core/src/libraries/Hooks.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
+import {ModifyLiquidityParams, SwapParams} from "@uniswap/v4-core/src/types/PoolOperation.sol";
 import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
 import {PoolId, PoolIdLibrary} from "@uniswap/v4-core/src/types/PoolId.sol";
 import {BalanceDelta} from "@uniswap/v4-core/src/types/BalanceDelta.sol";
@@ -138,7 +139,7 @@ contract DepegGuardianHook is BaseHook, CircuitBreaker, IDepegGuardian {
     // ─── Hook Callbacks ──────────────────────────────────────────────────────────
 
     /// @notice Called before every swap — enforces circuit breaker and computes dynamic fee
-    function beforeSwap(address, PoolKey calldata key, IPoolManager.SwapParams calldata, bytes calldata)
+    function beforeSwap(address, PoolKey calldata key, SwapParams calldata, bytes calldata)
         external
         override
         onlyPoolManager
@@ -158,7 +159,7 @@ contract DepegGuardianHook is BaseHook, CircuitBreaker, IDepegGuardian {
 
         // Circuit breaker check
         if (state.swapsPaused) {
-            revert SwapsPaused();
+            revert  SwapsCurrentlyPaused();
         }
 
         // Compute dynamic fee
@@ -182,7 +183,7 @@ contract DepegGuardianHook is BaseHook, CircuitBreaker, IDepegGuardian {
     }
 
     /// @notice Called after every swap — updates state and may trigger circuit breaker
-    function afterSwap(address, PoolKey calldata key, IPoolManager.SwapParams calldata, BalanceDelta, bytes calldata)
+    function afterSwap(address, PoolKey calldata key, SwapParams calldata, BalanceDelta, bytes calldata)
         external
         override
         onlyPoolManager
@@ -207,7 +208,7 @@ contract DepegGuardianHook is BaseHook, CircuitBreaker, IDepegGuardian {
     }
 
     /// @notice Called before adding liquidity — updates oracle state for LPs
-    function beforeAddLiquidity(address, PoolKey calldata key, IPoolManager.ModifyLiquidityParams calldata, bytes calldata)
+    function beforeAddLiquidity(address, PoolKey calldata key, ModifyLiquidityParams calldata, bytes calldata)
         external
         override
         onlyPoolManager

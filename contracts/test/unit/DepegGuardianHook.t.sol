@@ -228,10 +228,7 @@ contract DepegGuardianHookTest is Test, Deployers {
                 amountSpecified: -1e15,
                 sqrtPriceLimitX96: TickMath.MIN_SQRT_PRICE + 1
             }),
-            PoolSwapTest.TestSettings({
-                takeClaims: false,
-                settleUsingBurn: false
-            }),
+           
             ""
         );
     }
