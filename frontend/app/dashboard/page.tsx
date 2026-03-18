@@ -12,6 +12,8 @@ import { useFeeMultiplier } from "@/hooks/useFeeMultiplier";
 import { useCircuitBreaker } from "@/hooks/useCircuitBreaker";
 import { useOraclePrice } from "@/hooks/useOraclePrice";
 import { usePoolStats } from "@/hooks/usePoolStats";
+import { generateMockPegHistory, generateMockAlerts, USE_MOCK_DATA } from "@/lib/mockData";
+import { useMemo } from "react";
 
 // Demo pool ID — replace with real pool ID after deployment
 const DEMO_POOL_ID = "0x0000000000000000000000000000000000000000000000000000000000000001" as `0x${string}`;
@@ -44,6 +46,10 @@ export default function DashboardPage() {
         circuitBreakerBps,
         maxMultiplier,
     });
+
+    // Mock fallback data for chart and alerts
+    const mockPegHistory = useMemo(() => USE_MOCK_DATA ? generateMockPegHistory() : [], []);
+    const mockAlerts = useMemo(() => USE_MOCK_DATA ? generateMockAlerts() : [], []);
 
     return (
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -90,7 +96,7 @@ export default function DashboardPage() {
                 {/* Row 3 — Charts */}
                 <div className="lg:col-span-8">
                     <DepegHistoryChart
-                        data={[]}
+                        data={mockPegHistory}
                         driftWarningBps={10}
                         circuitBreakerBps={circuitBreakerBps}
                     />
@@ -98,7 +104,7 @@ export default function DashboardPage() {
 
                 {/* Row 4 — Alert Feed */}
                 <div className="lg:col-span-8">
-                    <AlertFeed alerts={[]} />
+                    <AlertFeed alerts={mockAlerts} />
                 </div>
 
                 {/* Row 4 — Circuit Breaker Controls */}

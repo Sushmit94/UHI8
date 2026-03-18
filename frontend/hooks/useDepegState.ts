@@ -9,9 +9,11 @@ import type { GuardianState } from "@/types/pool";
 import type { OnchainGuardianState } from "@/types/contracts";
 import { useChainId } from "wagmi";
 import toast from "react-hot-toast";
+import { USE_MOCK_DATA, MOCK_GUARDIAN_STATE } from "@/lib/mockData";
 
 /**
  * Poll onchain depeg state every 12 seconds (one Ethereum block)
+ * Falls back to mock data when on-chain reads are unavailable.
  */
 export function useDepegState(poolId: `0x${string}`) {
     const chainId = useChainId();
@@ -47,7 +49,7 @@ export function useDepegState(poolId: `0x${string}`) {
     }, [queryClient, queryKey]);
 
     // Parse onchain data
-    const guardianState: GuardianState | null = data
+    const onchainState: GuardianState | null = data
         ? {
             state: (data as OnchainGuardianState).state as DepegState,
             depegBps: Number((data as OnchainGuardianState).depegBps),
@@ -57,6 +59,9 @@ export function useDepegState(poolId: `0x${string}`) {
             swapsPaused: (data as OnchainGuardianState).swapsPaused,
         }
         : null;
+
+    // Use mock data as fallback when on-chain data is unavailable
+    const guardianState: GuardianState | null = onchainState ?? (USE_MOCK_DATA ? MOCK_GUARDIAN_STATE : null);
 
     // Toast notifications on state transitions
     useEffect(() => {
@@ -84,7 +89,7 @@ export function useDepegState(poolId: `0x${string}`) {
 
     return {
         state: guardianState,
-        isLoading,
+        isLoading: USE_MOCK_DATA ? false : isLoading,
         isError,
         error,
     };

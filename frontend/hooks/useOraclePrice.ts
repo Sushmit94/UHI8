@@ -4,9 +4,11 @@ import { useReadContract, useChainId } from "wagmi";
 import { useMemo } from "react";
 import { CHAINLINK_ORACLE_ABI } from "@/lib/contracts";
 import type { OracleData } from "@/types/pool";
+import { USE_MOCK_DATA, MOCK_ORACLE_DATA, getMockOracleFormatted, getMockStalenessPercent } from "@/lib/mockData";
 
 /**
- * Read Chainlink oracle price feed via viem
+ * Read Chainlink oracle price feed via viem.
+ * Falls back to mock data when oracle reads are unavailable.
  */
 export function useOraclePrice(oracleAddress?: `0x${string}`, maxOracleAge: number = 3600) {
     const chainId = useChainId();
@@ -38,7 +40,7 @@ export function useOraclePrice(oracleAddress?: `0x${string}`, maxOracleAge: numb
         query: { enabled },
     });
 
-    const oracleData: OracleData | null = useMemo(() => {
+    const onchainOracleData: OracleData | null = useMemo(() => {
         if (!roundData) return null;
 
         const [roundId, answer, , updatedAt, answeredInRound] = roundData as [
@@ -63,24 +65,29 @@ export function useOraclePrice(oracleAddress?: `0x${string}`, maxOracleAge: numb
         };
     }, [roundData, decimals, description, maxOracleAge]);
 
+    // Use mock data as fallback
+    const oracleData = onchainOracleData ?? (USE_MOCK_DATA ? MOCK_ORACLE_DATA : null);
+
     const priceFormatted = useMemo(() => {
         if (!oracleData) return "$-.----";
+        if (!onchainOracleData && USE_MOCK_DATA) return getMockOracleFormatted();
         const dec = oracleData.decimals;
         const price = Number(oracleData.price) / 10 ** dec;
         return "$" + price.toFixed(4);
-    }, [oracleData]);
+    }, [oracleData, onchainOracleData]);
 
     const stalenessPercent = useMemo(() => {
         if (!oracleData) return 0;
+        if (!onchainOracleData && USE_MOCK_DATA) return getMockStalenessPercent(maxOracleAge);
         const now = Math.floor(Date.now() / 1000);
         const age = now - Math.floor(oracleData.updatedAt.getTime() / 1000);
         return Math.min(100, (age / maxOracleAge) * 100);
-    }, [oracleData, maxOracleAge]);
+    }, [oracleData, onchainOracleData, maxOracleAge]);
 
     return {
         oracleData,
         priceFormatted,
         stalenessPercent,
-        isLoading: isLoadingPrice || isLoadingDecimals,
+        isLoading: USE_MOCK_DATA ? false : (isLoadingPrice || isLoadingDecimals),
     };
 }

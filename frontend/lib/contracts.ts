@@ -211,7 +211,7 @@ export const CHAINLINK_ORACLE_ABI = [
 
 export const HOOK_ADDRESSES: Record<number, `0x${string}`> = {
     1: "0x0000000000000000000000000000000000000000", // Mainnet: to be deployed
-    11155111: "0x0000000000000000000000000000000000000000", // Sepolia: to be deployed
+    11155111: "0xBd990c621408644A1457B4f0e649C49509B2C8C0", // Sepolia: to be deployed
     8453: "0x0000000000000000000000000000000000000000", // Base: to be deployed
     42161: "0x0000000000000000000000000000000000000000", // Arbitrum: to be deployed
 };

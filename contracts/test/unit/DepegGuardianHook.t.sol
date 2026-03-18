@@ -2,6 +2,8 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
+import {PoolSwapTest} from "@uniswap/v4-core/src/test/PoolSwapTest.sol";
+import {ModifyLiquidityParams, SwapParams} from "@uniswap/v4-core/src/types/PoolOperation.sol";
 import {Deployers} from "@uniswap/v4-core/test/utils/Deployers.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
@@ -71,7 +73,7 @@ contract DepegGuardianHookTest is Test, Deployers {
         hook.registerPool(poolKey, config);
     }
 
-    // ─── Registration ────────────────────────────────────────────────────────────
+    // --- Registration ---
 
     function test_RegisterPool_Success() public view {
         assertTrue(hook.isPoolRegistered(poolId));
@@ -120,7 +122,7 @@ contract DepegGuardianHookTest is Test, Deployers {
         hook.registerPool(newKey, config);
     }
 
-    // ─── Config ──────────────────────────────────────────────────────────────────
+    // --- Config ---
 
     function test_GetConfig() public view {
         IDepegGuardian.GuardianConfig memory config = hook.getConfig(poolId);
@@ -148,7 +150,7 @@ contract DepegGuardianHookTest is Test, Deployers {
         assertEq(config.circuitBreakerBps, 300);
     }
 
-    // ─── State Transitions ───────────────────────────────────────────────────────
+    // --- State Transitions ---
 
     function test_StateTransition_PeggedToDrifting() public {
         // Set oracle to $0.999 (10 bps drift)
@@ -181,14 +183,14 @@ contract DepegGuardianHookTest is Test, Deployers {
         assertTrue(state.swapsPaused, "Swaps should be paused");
     }
 
-    // ─── TWAP ────────────────────────────────────────────────────────────────────
+    // --- TWAP ---
 
     function test_TwapPrice_InitializedAtPeg() public view {
         uint256 twap = hook.getTwapPrice(poolId);
         assertEq(twap, 1e18, "TWAP should be initialized at peg price");
     }
 
-    // ─── Stale Oracle ────────────────────────────────────────────────────────────
+    // --- Stale Oracle ---
 
     function test_StaleOracle_MaxFee() public {
         // Set oracle updatedAt to 2 hours ago (stale)
@@ -196,7 +198,7 @@ contract DepegGuardianHookTest is Test, Deployers {
 
         _addLiquidity();
 
-        // beforeSwap sees stale oracle → sets max fee
+        // beforeSwap sees stale oracle -> sets max fee
         // It also transitions to DEPEGGED state
         // afterSwap will then pause swaps
         _swap();
@@ -205,12 +207,12 @@ contract DepegGuardianHookTest is Test, Deployers {
         assertTrue(state.state == IDepegGuardian.DepegState.DEPEGGED, "Stale oracle should trigger DEPEGGED");
     }
 
-    // ─── Helpers ─────────────────────────────────────────────────────────────────
+    // --- Helpers ---
 
     function _addLiquidity() internal {
         modifyLiquidityRouter.modifyLiquidity(
             poolKey,
-            IPoolManager.ModifyLiquidityParams({
+            ModifyLiquidityParams({
                 tickLower: -120,
                 tickUpper: 120,
                 liquidityDelta: 1e18,
@@ -223,12 +225,15 @@ contract DepegGuardianHookTest is Test, Deployers {
     function _swap() internal {
         swapRouter.swap(
             poolKey,
-            IPoolManager.SwapParams({
+            SwapParams({
                 zeroForOne: true,
                 amountSpecified: -1e15,
                 sqrtPriceLimitX96: TickMath.MIN_SQRT_PRICE + 1
             }),
-           
+            PoolSwapTest.TestSettings({
+                takeClaims: false,
+                settleUsingBurn: false
+            }),
             ""
         );
     }

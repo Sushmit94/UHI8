@@ -6,9 +6,11 @@ import { useMemo, useState, useEffect } from "react";
 import { DEPEG_GUARDIAN_HOOK_ABI, getHookAddress } from "@/lib/contracts";
 import type { CircuitBreakerState } from "@/types/pool";
 import toast from "react-hot-toast";
+import { USE_MOCK_DATA, MOCK_CIRCUIT_BREAKER } from "@/lib/mockData";
 
 /**
- * Read + write circuit breaker state
+ * Read + write circuit breaker state.
+ * Falls back to mock data when on-chain reads are unavailable.
  */
 export function useCircuitBreaker() {
     const chainId = useChainId();
@@ -104,17 +106,21 @@ export function useCircuitBreaker() {
         }
     }, [cooldownRemaining]);
 
-    // Derived state
+    // Derived state — use mock data as fallback when on-chain reads are unavailable
+    const hasOnchainData = isPaused !== undefined || guardianAddr !== undefined;
     const circuitBreaker: CircuitBreakerState = useMemo(
-        () => ({
-            isPaused: Boolean(isPaused),
-            pausedAt: pausedAt ? new Date(Number(pausedAt) * 1000) : null,
-            cooldownSeconds: Number(cooldownSecs || 3600),
-            isInCooldown: Boolean(inCooldown),
-            cooldownRemainingSeconds: cooldownTimer,
-            guardian: (guardianAddr as `0x${string}`) || "0x0000000000000000000000000000000000000000",
-        }),
-        [isPaused, pausedAt, cooldownSecs, inCooldown, cooldownTimer, guardianAddr]
+        () => {
+            if (!hasOnchainData && USE_MOCK_DATA) return MOCK_CIRCUIT_BREAKER;
+            return {
+                isPaused: Boolean(isPaused),
+                pausedAt: pausedAt ? new Date(Number(pausedAt) * 1000) : null,
+                cooldownSeconds: Number(cooldownSecs || 3600),
+                isInCooldown: Boolean(inCooldown),
+                cooldownRemainingSeconds: cooldownTimer,
+                guardian: (guardianAddr as `0x${string}`) || "0x0000000000000000000000000000000000000000",
+            };
+        },
+        [isPaused, pausedAt, cooldownSecs, inCooldown, cooldownTimer, guardianAddr, hasOnchainData]
     );
 
     const isGuardian = useMemo(

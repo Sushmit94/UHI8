@@ -1,8 +1,9 @@
-import {ModifyLiquidityParams, SwapParams} from "@uniswap/v4-core/src/types/PoolOperation.sol";
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
+import {PoolSwapTest} from "@uniswap/v4-core/src/test/PoolSwapTest.sol";
+import {ModifyLiquidityParams, SwapParams} from "@uniswap/v4-core/src/types/PoolOperation.sol";
 import {Deployers} from "@uniswap/v4-core/test/utils/Deployers.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
@@ -77,7 +78,7 @@ contract DepegScenarioTest is Test, Deployers {
         );
     }
 
-    /// @notice Simulate the USDC SVB depeg: $1.00 → $0.877
+    /// @notice Simulate the USDC SVB depeg: $1.00 -> $0.877
     function test_USDC_SVB_DepegScenario() public {
         // Stage 1: Start at peg
         IDepegGuardian.GuardianState memory state = hook.getDepegState(poolId);
@@ -111,9 +112,9 @@ contract DepegScenarioTest is Test, Deployers {
         assertTrue(state.state == IDepegGuardian.DepegState.DEPEGGED, "Should be DEPEGGED at $0.98");
         assertTrue(state.swapsPaused, "Swaps should be paused");
 
-        // Stage 6: Further depeg to $0.877 — swaps should be blocked
+        // Stage 6: Further depeg to $0.877 - swaps should be blocked
         oracle.setPrice(0.877e8);
-        vm.expectRevert(IDepegGuardian.SwapsPaused.selector);
+        vm.expectRevert(IDepegGuardian.SwapsCurrentlyPaused.selector);
         _swap();
 
         // Stage 7: Recovery back to $1.00 after cooldown
@@ -156,7 +157,7 @@ contract DepegScenarioTest is Test, Deployers {
         assertEq(state.currentFee, 26625, "Fee at 150 bps drift");
     }
 
-    /// @notice Test recovery sequence: DEPEGGED → PEGGED
+    /// @notice Test recovery sequence: DEPEGGED -> PEGGED
     function test_RecoverySequence() public {
         // Trigger depeg
         oracle.setPrice(0.97e8);
@@ -185,7 +186,10 @@ contract DepegScenarioTest is Test, Deployers {
                 amountSpecified: -1e15,
                 sqrtPriceLimitX96: TickMath.MIN_SQRT_PRICE + 1
             }),
-            
+            PoolSwapTest.TestSettings({
+                takeClaims: false,
+                settleUsingBurn: false
+            }),
             ""
         );
     }

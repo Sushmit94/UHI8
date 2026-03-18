@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
-import {ModifyLiquidityParams, SwapParams} from "@uniswap/v4-core/src/types/PoolOperation.sol";
-import "forge-std/Test.sol";
 
+import "forge-std/Test.sol";
+import {PoolSwapTest} from "@uniswap/v4-core/src/test/PoolSwapTest.sol";
+import {ModifyLiquidityParams, SwapParams} from "@uniswap/v4-core/src/types/PoolOperation.sol";
 import {Deployers} from "@uniswap/v4-core/test/utils/Deployers.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
@@ -66,7 +67,7 @@ contract OracleManipulationTest is Test, Deployers {
 
         modifyLiquidityRouter.modifyLiquidity(
             poolKey,
-            IPoolManager.ModifyLiquidityParams({
+            ModifyLiquidityParams({
                 tickLower: -600,
                 tickUpper: 600,
                 liquidityDelta: 100e18,
@@ -93,7 +94,7 @@ contract OracleManipulationTest is Test, Deployers {
         // This is a >5% deviation from TWAP ($1.00)
         oracle.setPrice(0.90e8);
 
-        // Swap — the TWAP guard should prevent using the manipulated spot price
+        // Swap - the TWAP guard should prevent using the manipulated spot price
         _swap();
 
         // State should use TWAP price instead of manipulated spot
@@ -136,7 +137,7 @@ contract OracleManipulationTest is Test, Deployers {
 
     /// @notice Test stale oracle fallback to maximum fee
     function test_StaleOracle_FallbackToMaxFee() public {
-        // Set oracle timestamp to be stale (> maxOracleAge)
+        // Set oracle timestamp to be stale (>maxOracleAge)
         oracle.setUpdatedAt(block.timestamp - 7200); // 2 hours old, max is 3600
 
         _swap();
@@ -169,12 +170,15 @@ contract OracleManipulationTest is Test, Deployers {
     function _swap() internal {
         swapRouter.swap(
             poolKey,
-            IPoolManager.SwapParams({
+            SwapParams({
                 zeroForOne: true,
                 amountSpecified: -1e15,
                 sqrtPriceLimitX96: TickMath.MIN_SQRT_PRICE + 1
             }),
-            
+            PoolSwapTest.TestSettings({
+                takeClaims: false,
+                settleUsingBurn: false
+            }),
             ""
         );
     }
