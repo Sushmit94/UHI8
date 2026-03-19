@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Shield } from "lucide-react";
-import { ConnectWallet } from "@/components/shared/ConnectWallet";
 
 export function Navbar() {
     return (
@@ -42,9 +41,6 @@ export function Navbar() {
                         Docs
                     </a>
                 </nav>
-
-                {/* Wallet */}
-                <ConnectWallet />
             </div>
         </header>
     );
