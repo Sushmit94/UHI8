@@ -106,8 +106,11 @@ contract DepegMathTest is Test {
     }
 
     function test_NormalizePrice_NegativeReverts() public {
+        // Library-internal require reverts at the same depth, so we use a helper
+        // contract call to properly catch the revert
+        DepegMathReverter reverter = new DepegMathReverter();
         vm.expectRevert("DepegMath: negative price");
-        DepegMath.normalizePrice(-1, 8);
+        reverter.callNormalizePrice(-1, 8);
     }
 
     // ─── classifyState ───────────────────────────────────────────────────────────
@@ -148,5 +151,12 @@ contract DepegMathTest is Test {
         price = bound(price, 0.5e18, 1.5e18);
         uint256 bps = DepegMath.computeDepegBps(price, 1e18);
         assertTrue(bps <= 5000, "Bps should not exceed 50%");
+    }
+}
+
+/// @notice Helper contract for testing library reverts at correct call depth
+contract DepegMathReverter {
+    function callNormalizePrice(int256 rawPrice, uint8 oracleDecimals) external pure returns (uint256) {
+        return DepegMath.normalizePrice(rawPrice, oracleDecimals);
     }
 }

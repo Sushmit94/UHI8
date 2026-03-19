@@ -169,18 +169,17 @@ contract DepegGuardianHookTest is Test, Deployers {
         // Set oracle to $0.98 (200 bps = circuit breaker)
         oracle.setPrice(0.98e8);
 
+        // Adding liquidity triggers beforeAddLiquidity which calls _updateOracleState
+        // This will transition to DEPEGGED and pause swaps
         _addLiquidity();
-
-        // Swap should revert because circuit breaker will be triggered
-        // and afterSwap will pause
-        // Actually, the first beforeSwap call updates state and computes fee
-        // but doesn't pause yet. afterSwap pauses.
-        // The NEXT swap will revert.
-        _swap();
 
         IDepegGuardian.GuardianState memory state = hook.getDepegState(poolId);
         assertTrue(state.state == IDepegGuardian.DepegState.DEPEGGED, "Should transition to DEPEGGED");
         assertTrue(state.swapsPaused, "Swaps should be paused");
+
+        // Verify swap reverts when paused
+        vm.expectRevert();
+        _swap();
     }
 
     // --- TWAP ---
@@ -193,18 +192,19 @@ contract DepegGuardianHookTest is Test, Deployers {
     // --- Stale Oracle ---
 
     function test_StaleOracle_MaxFee() public {
+        // Warp forward so timestamp subtraction doesn't underflow
+        vm.warp(10000);
+
         // Set oracle updatedAt to 2 hours ago (stale)
         oracle.setUpdatedAt(block.timestamp - 7200);
 
+        // Adding liquidity triggers beforeAddLiquidity -> _updateOracleState
+        // Stale oracle -> DEPEGGED + pause
         _addLiquidity();
-
-        // beforeSwap sees stale oracle -> sets max fee
-        // It also transitions to DEPEGGED state
-        // afterSwap will then pause swaps
-        _swap();
 
         IDepegGuardian.GuardianState memory state = hook.getDepegState(poolId);
         assertTrue(state.state == IDepegGuardian.DepegState.DEPEGGED, "Stale oracle should trigger DEPEGGED");
+        assertTrue(state.swapsPaused, "Swaps should be paused");
     }
 
     // --- Helpers ---

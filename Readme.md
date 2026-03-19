@@ -121,7 +121,7 @@ depeg-guardian-hook/
 
 | Partner | Integration | Code Location |
 |---|---|---|
-| **Chainlink** | Price Feeds (`latestRoundData`) for real-time oracle-based depeg detection | [src/DepegGuardianHook.sol](cci:7://file:///c:/Users/hp/OneDrive/Desktop/semiFinalProject/depeg-guardian-hook/contracts/src/DepegGuardianHook.sol:0:0-0:0) L232-251, [src/interfaces/IChainlinkOracle.sol](cci:7://file:///c:/Users/hp/OneDrive/Desktop/semiFinalProject/depeg-guardian-hook/contracts/src/interfaces/IChainlinkOracle.sol:0:0-0:0) |
+| **Chainlink** | Price Feeds (`latestRoundData`) for real-time oracle-based depeg detection | [src/DepegGuardianHook.sol] L232-251, [src/interfaces/IChainlinkOracle.sol]
 
 
 
@@ -252,10 +252,14 @@ This quadratic curve means fees increase slowly during small drifts and accelera
 
 | Network | Hook Address | Status |
 |---|---|---|
-| Ethereum Sepolia | `0x...` | ✅ Testnet Live |
-| Base Sepolia | `0x...` | ✅ Testnet Live |
-| Arbitrum Sepolia | `0x...` | 🔜 Coming Soon |
+| Ethereum Sepolia | `0xAe7a6892cE4AF2c6e0218c649655c8faf912AB9B` | ⚠️ Testnet (CREATE2 salt fix pending) |
+| Base Sepolia | — | 🔜 Coming Soon |
+| Arbitrum Sepolia | — | 🔜 Coming Soon |
 | Ethereum Mainnet | — | 🔜 Post-audit |
+
+**Deployment Details (Sepolia):**
+- Deployer/Guardian: `0x483f1De8769a1595353b7ea1D41dCd41BbE195AA`
+- PoolManager: `0x000000000004444c5dc75cB358380D2e3dE08A90`
 
 ---
 
